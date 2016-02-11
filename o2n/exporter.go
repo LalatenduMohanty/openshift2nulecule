@@ -59,6 +59,18 @@ func exportObjectMeta(objMeta *kapi.ObjectMeta, exact bool) {
 	}
 }
 
+// Remove securityContext from Pod.
+// This is because right now I don't know how to get
+// securityContext and SELinux to work on k8s :-(
+func removeSecurityContext(obj runtime.Object) {
+	pod := obj.(*kapi.Pod)
+
+	pod.Spec.SecurityContext = &kapi.PodSecurityContext{}
+	for i, _ := range pod.Spec.Containers {
+		pod.Spec.Containers[i].SecurityContext = &kapi.SecurityContext{}
+	}
+}
+
 func (e *myExporter) Export(obj runtime.Object, exact bool) error {
 	if meta, err := kapi.ObjectMetaFor(obj); err == nil {
 		exportObjectMeta(meta, exact)
@@ -91,6 +103,8 @@ func (e *myExporter) Export(obj runtime.Object, exact bool) error {
 		controller.Strategy.PrepareForCreate(obj)
 	case *kapi.Pod:
 		pod.Strategy.PrepareForCreate(obj)
+		//TODO: not sure about this :(
+		removeSecurityContext(obj)
 	case *kapi.PodTemplate:
 	case *kapi.Service:
 		// TODO: service does not yet have a strategy
