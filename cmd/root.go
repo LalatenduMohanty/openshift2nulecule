@@ -31,7 +31,11 @@ to quickly create a Cobra application.`,
 		jww.INFO.Printf("Staring")
 		jww.DEBUG.Printf("args = %s", args)
 		// TODO: check required arguments
-		err := o2n.Export(OutputDir, Factory, cmd, args)
+
+		// export only k8s kinds, for now
+		var kindsToExport []string
+		kindsToExport = append(kindsToExport, "pods,replicationcontrollers,persistentvolumeclaims,services")
+		err := o2n.Export(OutputDir, Factory, cmd, kindsToExport)
 		if err != nil {
 			jww.FATAL.Printf("ERROR: %s", err)
 		}
